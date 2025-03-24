@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "Root"
+		},
+		{
+			"path": "openmp",
+			"name": "OpenMP"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"openmp/": true,
+		},
+		"search.exclude": {
+			"**/build/*": true,
+		},
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.cmake-tools",
+			"ms-vscode.cpptools",
+			"wayou.vscode-todo-highlight",
+			"ms-vscode-remote.remote-ssh",
+			"ms-vscode-remote.remote-containers"
+		]
+	},
+}
