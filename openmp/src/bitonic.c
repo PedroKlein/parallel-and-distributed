@@ -11,6 +11,9 @@
 
 #define LENGTH 8
 
+#define OUTPUT_DIR "output/"
+#define INPUT_DIR "data/"
+
 FILE *fin, *fout;
 
 char *strings;
@@ -24,19 +27,24 @@ unsigned long int powersOfTwo[] = {1,        2,        4,        8,         16, 
 #define ASCENDING 1
 #define DESCENDING 0
 
-void openfiles()
+void openfiles(char *input_file)
 {
-    fin = fopen("../data/simple.in", "r");
+    fin = fopen(input_file, "r");
     if (fin == NULL)
     {
         perror("fopen fin");
+        fprintf(stderr, "Error opening input file: %s\n", input_file);
         exit(EXIT_FAILURE);
     }
 
-    fout = fopen("sort.out", "w");
+    char output_file[256];
+    snprintf(output_file, sizeof(output_file), OUTPUT_DIR "%s.out",
+             strrchr(input_file, '/') ? strrchr(input_file, '/') + 1 : input_file);
+    fout = fopen(output_file, "w");
     if (fout == NULL)
     {
         perror("fopen fout");
+        fprintf(stderr, "Error opening output file: %s\n", output_file);
         exit(EXIT_FAILURE);
     }
 }
@@ -110,10 +118,24 @@ void BitonicSort()
 /** the main program **/
 int main(int argc, char **argv)
 {
-
     long int i;
+    char input_file[256] = INPUT_DIR "simple.in";
 
-    openfiles();
+    for (int arg = 1; arg < argc; arg++)
+    {
+        if (strcmp(argv[arg], "-i") == 0 && arg + 1 < argc)
+        {
+            snprintf(input_file, sizeof(input_file), INPUT_DIR "%s", argv[arg + 1]);
+            arg++;
+        }
+        else
+        {
+            fprintf(stderr, "Usage: %s [-i input_file]\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    openfiles(input_file);
 
     fscanf(fin, "%ld", &N);
 
