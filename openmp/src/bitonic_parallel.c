@@ -5,15 +5,12 @@
  *********************************************************************/
 
 #include <math.h>
-#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 
 #define LENGTH 8
-
-#define OUTPUT_DIR "output/"
-#define INPUT_DIR "data/"
 
 FILE *fin, *fout;
 
@@ -28,24 +25,20 @@ unsigned long int powersOfTwo[] = {1,        2,        4,        8,         16, 
 #define ASCENDING 1
 #define DESCENDING 0
 
-void openfiles(char *input_file)
+void openfiles(char *filePath)
 {
-    fin = fopen(input_file, "r");
+    fin = fopen(filePath, "r");
+    // fin = fopen("data/in_1024.in", "r");
     if (fin == NULL)
     {
         perror("fopen fin");
-        fprintf(stderr, "Error opening input file: %s\n", input_file);
         exit(EXIT_FAILURE);
     }
 
-    char output_file[256];
-    snprintf(output_file, sizeof(output_file), OUTPUT_DIR "%s.out",
-             strrchr(input_file, '/') ? strrchr(input_file, '/') + 1 : input_file);
-    fout = fopen(output_file, "w");
+    fout = fopen("sort.out", "w");
     if (fout == NULL)
     {
         perror("fopen fout");
-        fprintf(stderr, "Error opening output file: %s\n", output_file);
         exit(EXIT_FAILURE);
     }
 }
@@ -56,11 +49,6 @@ void closefiles(void)
     fclose(fout);
 }
 
-/** procedure compare()
- The parameter dir indicates the sorting direction, ASCENDING
- or DESCENDING; if (a[i] > a[j]) agrees with the direction,
- then a[i] and a[j] are interchanged.
- **/
 void compare(int i, int j, int dir)
 {
     if (dir == (strcmp(strings + i * LENGTH, strings + j * LENGTH) > 0))
@@ -72,71 +60,57 @@ void compare(int i, int j, int dir)
     }
 }
 
-/** Procedure bitonicMerge()
- It recursively sorts a bitonic sequence in ascending order,
- if dir = ASCENDING, and in descending order otherwise.
- The sequence to be sorted starts at index position lo,
- the parameter cbt is the number of elements to be sorted.
- **/
 void bitonicMerge(int lo, int cnt, int dir)
 {
     if (cnt > 1)
     {
         int k = cnt / 2;
-        int i;
-        for (i = lo; i < lo + k; i++)
+
+        // Paralelizando a comparação entre os pares
+        #pragma omp parallel for schedule(dynamic)
+        for (int i = lo; i < lo + k; i++)
             compare(i, i + k, dir);
+
         bitonicMerge(lo, k, dir);
         bitonicMerge(lo + k, k, dir);
     }
 }
 
-/** function recBitonicSort()
- first produces a bitonic sequence by recursively sorting
- its two halves in opposite sorting orders, and then
- calls bitonicMerge to make them in the same order
- **/
 void recBitonicSort(int lo, int cnt, int dir)
 {
     if (cnt > 1)
     {
         int k = cnt / 2;
-        recBitonicSort(lo, k, ASCENDING);
-        recBitonicSort(lo + k, k, DESCENDING);
+
+        // Executando as duas metades em paralelo
+        #pragma omp parallel sections
+        {
+            #pragma omp section
+            recBitonicSort(lo, k, ASCENDING);
+
+            #pragma omp section
+            recBitonicSort(lo + k, k, DESCENDING);
+        }
+
         bitonicMerge(lo, cnt, dir);
     }
 }
 
-/** function sort()
- Caller of recBitonicSort for sorting the entire array of length N
- in ASCENDING order
- **/
 void BitonicSort()
 {
     recBitonicSort(0, N, ASCENDING);
 }
 
-/** the main program **/
 int main(int argc, char **argv)
 {
     long int i;
-    char input_file[256] = INPUT_DIR "simple.in";
-
-    for (int arg = 1; arg < argc; arg++)
+    if (argc < 2)
     {
-        if (strcmp(argv[arg], "-i") == 0 && arg + 1 < argc)
-        {
-            snprintf(input_file, sizeof(input_file), INPUT_DIR "%s", argv[arg + 1]);
-            arg++;
-        }
-        else
-        {
-            fprintf(stderr, "Usage: %s [-i input_file]\n", argv[0]);
-            exit(EXIT_FAILURE);
-        }
+        printf("Usage: %s <input_file>\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
-
-    openfiles(input_file);
+    printf("Input file: %s\n", argv[1]);
+    openfiles(argv[1]);
 
     fscanf(fin, "%ld", &N);
 

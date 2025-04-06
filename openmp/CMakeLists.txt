@@ -15,6 +15,9 @@ target_link_libraries(test PUBLIC OpenMP::OpenMP_C m)
 add_executable(bitonic src/bitonic.c)
 target_link_libraries(bitonic PUBLIC OpenMP::OpenMP_C m)
 
+add_executable(bitonic_parallel src/bitonic_parallel.c)
+target_link_libraries(bitonic_parallel PUBLIC OpenMP::OpenMP_C)
+
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/data
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/data
