@@ -4,10 +4,17 @@
  *
  *********************************************************************/
 
+/*********************************************************************
+ *
+ * https://www.cs.duke.edu/courses/fall08/cps196.1/Pthreads/bitonic.c
+ *
+ *********************************************************************/
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 
 #define LENGTH 8
 
@@ -24,9 +31,10 @@ unsigned long int powersOfTwo[] = {1,        2,        4,        8,         16, 
 #define ASCENDING 1
 #define DESCENDING 0
 
-void openfiles()
+void openfiles(char *filePath)
 {
-    fin = fopen("../data/simple.in", "r");
+    fin = fopen("data/in_64.in", "r");
+    // fin = fopen("data/in_1024.in", "r");
     if (fin == NULL)
     {
         perror("fopen fin");
@@ -113,7 +121,13 @@ int main(int argc, char **argv)
 
     long int i;
 
-    openfiles();
+    if (argc < 2)
+    {
+        printf("Usage: %s <input_file>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    printf("Input file: %s\n", argv[1]);
+    openfiles(argv[1]);
 
     fscanf(fin, "%ld", &N);
 
@@ -133,7 +147,9 @@ int main(int argc, char **argv)
     for (i = 0; i < N; i++)
         fscanf(fin, "%s", strings + (i * LENGTH));
 
+    double initTime = omp_get_wtime();
     BitonicSort();
+    printf("Total time = %.5lf\n", omp_get_wtime() - initTime);
 
     for (i = 0; i < N; i++)
         fprintf(fout, "%s\n", strings + (i * LENGTH));

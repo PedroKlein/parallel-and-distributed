@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <omp.h>
 
 #define LENGTH 8
 
@@ -24,9 +25,10 @@ unsigned long int powersOfTwo[] = {1,        2,        4,        8,         16, 
 #define ASCENDING 1
 #define DESCENDING 0
 
-void openfiles()
+void openfiles(char *filePath)
 {
-    fin = fopen("data/simple.in", "r");
+    fin = fopen(filePath, "r");
+    // fin = fopen("data/in_1024.in", "r");
     if (fin == NULL)
     {
         perror("fopen fin");
@@ -47,11 +49,6 @@ void closefiles(void)
     fclose(fout);
 }
 
-/** procedure compare()
- The parameter dir indicates the sorting direction, ASCENDING
- or DESCENDING; if (a[i] > a[j]) agrees with the direction,
- then a[i] and a[j] are interchanged.
- **/
 void compare(int i, int j, int dir)
 {
     if (dir == (strcmp(strings + i * LENGTH, strings + j * LENGTH) > 0))
@@ -63,57 +60,57 @@ void compare(int i, int j, int dir)
     }
 }
 
-/** Procedure bitonicMerge()
- It recursively sorts a bitonic sequence in ascending order,
- if dir = ASCENDING, and in descending order otherwise.
- The sequence to be sorted starts at index position lo,
- the parameter cbt is the number of elements to be sorted.
- **/
 void bitonicMerge(int lo, int cnt, int dir)
 {
     if (cnt > 1)
     {
         int k = cnt / 2;
-        int i;
-        for (i = lo; i < lo + k; i++)
+
+        // Paralelizando a comparação entre os pares
+        #pragma omp parallel for schedule(dynamic)
+        for (int i = lo; i < lo + k; i++)
             compare(i, i + k, dir);
+
         bitonicMerge(lo, k, dir);
         bitonicMerge(lo + k, k, dir);
     }
 }
 
-/** function recBitonicSort()
- first produces a bitonic sequence by recursively sorting
- its two halves in opposite sorting orders, and then
- calls bitonicMerge to make them in the same order
- **/
 void recBitonicSort(int lo, int cnt, int dir)
 {
     if (cnt > 1)
     {
         int k = cnt / 2;
-        recBitonicSort(lo, k, ASCENDING);
-        recBitonicSort(lo + k, k, DESCENDING);
+
+        // Executando as duas metades em paralelo
+        #pragma omp parallel sections
+        {
+            #pragma omp section
+            recBitonicSort(lo, k, ASCENDING);
+
+            #pragma omp section
+            recBitonicSort(lo + k, k, DESCENDING);
+        }
+
         bitonicMerge(lo, cnt, dir);
     }
 }
 
-/** function sort()
- Caller of recBitonicSort for sorting the entire array of length N
- in ASCENDING order
- **/
 void BitonicSort()
 {
     recBitonicSort(0, N, ASCENDING);
 }
 
-/** the main program **/
 int main(int argc, char **argv)
 {
-
     long int i;
-
-    openfiles();
+    if (argc < 2)
+    {
+        printf("Usage: %s <input_file>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    printf("Input file: %s\n", argv[1]);
+    openfiles(argv[1]);
 
     fscanf(fin, "%ld", &N);
 
@@ -133,7 +130,9 @@ int main(int argc, char **argv)
     for (i = 0; i < N; i++)
         fscanf(fin, "%s", strings + (i * LENGTH));
 
+    double initTime = omp_get_wtime();
     BitonicSort();
+    printf("Total time = %.5lf\n", omp_get_wtime() - initTime);
 
     for (i = 0; i < N; i++)
         fprintf(fout, "%s\n", strings + (i * LENGTH));
