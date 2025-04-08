@@ -20,6 +20,10 @@ target_link_libraries(test PUBLIC OpenMP::OpenMP_C m)
 add_executable(bitonic src/bitonic.c)
 target_link_libraries(bitonic PUBLIC OpenMP::OpenMP_C m)
 
+add_executable(bitonic_parallel_v1 src/bitonic_parallel_v1.c)
+target_link_libraries(bitonic_parallel_v1 PUBLIC OpenMP::OpenMP_C m)
+set_property(TARGET bitonic_parallel_v1 PROPERTY ENVIRONMENT "OMP_PROC_BIND=TRUE")
+
 add_executable(bitonic_parallel src/bitonic_parallel.c)
 target_link_libraries(bitonic_parallel PUBLIC OpenMP::OpenMP_C m)
 set_property(TARGET bitonic_parallel PROPERTY ENVIRONMENT "OMP_PROC_BIND=TRUE")
