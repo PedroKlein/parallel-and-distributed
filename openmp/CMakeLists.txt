@@ -5,7 +5,12 @@ set(CMAKE_C_STANDARD 99)
 
 find_package(OpenMP REQUIRED)
 if(OpenMP_C_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -pg")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
+
+find_program(GPROF_FOUND gprof)
+if(GPROF_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 endif()
 
@@ -16,7 +21,8 @@ add_executable(bitonic src/bitonic.c)
 target_link_libraries(bitonic PUBLIC OpenMP::OpenMP_C m)
 
 add_executable(bitonic_parallel src/bitonic_parallel.c)
-target_link_libraries(bitonic_parallel PUBLIC OpenMP::OpenMP_C)
+target_link_libraries(bitonic_parallel PUBLIC OpenMP::OpenMP_C m)
+set_property(TARGET bitonic_parallel PROPERTY ENVIRONMENT "OMP_PROC_BIND=TRUE")
 
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/data

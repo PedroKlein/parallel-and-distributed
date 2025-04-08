@@ -14,6 +14,7 @@
 
 #define OUTPUT_DIR "output/"
 #define INPUT_DIR "data/"
+#define DEFAULT_INPUT_FILE "in_1048576.in"
 
 FILE *fin, *fout;
 
@@ -27,7 +28,8 @@ unsigned long int powersOfTwo[] = {1,        2,        4,        8,         16, 
 
 #define ASCENDING 1
 #define DESCENDING 0
-
+// 0.09722
+// 0.00111
 void openfiles(char *input_file)
 {
     fin = fopen(input_file, "r");
@@ -120,7 +122,7 @@ void BitonicSort()
 int main(int argc, char **argv)
 {
     long int i;
-    char input_file[256] = INPUT_DIR "simple.in";
+    char input_file[256] = INPUT_DIR DEFAULT_INPUT_FILE;
 
     for (int arg = 1; arg < argc; arg++)
     {
