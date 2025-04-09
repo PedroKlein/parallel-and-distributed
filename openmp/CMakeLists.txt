@@ -14,6 +14,9 @@ if(GPROF_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 endif()
 
+# Add -O2 optimization flag
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2")
+
 add_executable(test src/test.c)
 target_link_libraries(test PUBLIC OpenMP::OpenMP_C m)
 

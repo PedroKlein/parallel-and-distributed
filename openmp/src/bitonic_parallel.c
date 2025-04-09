@@ -1,11 +1,3 @@
-/*********************************************************************
- *
- * Parallel Bitonic Sort with OpenMP Directives
- *
- * Compile with: gcc -fopenmp -O2 bitonic_omp.c -o bitonic_omp
- *
- *********************************************************************/
-
 #include <math.h>
 #include <omp.h>
 #include <stdio.h>
@@ -13,14 +5,15 @@
 #include <string.h>
 
 #define LENGTH 8
-#define TASK_THRESHOLD 2048 // Use tasks only for chunks larger than threshold
+
+int task_threshold = 2048;
+#define DEFAULT_CSV_MODE 0
 
 #define OUTPUT_DIR "output/"
 #define INPUT_DIR "data/"
 #define DEFAULT_INPUT_FILE "in_1048576.in"
 
 FILE *fin, *fout;
-
 char *strings;
 long int N;
 
@@ -31,6 +24,8 @@ unsigned long int powersOfTwo[] = {1,        2,        4,        8,         16, 
 
 #define ASCENDING 1
 #define DESCENDING 0
+
+int csv_mode = DEFAULT_CSV_MODE;
 
 void openfiles(char *input_file)
 {
@@ -60,11 +55,6 @@ void closefiles(void)
     fclose(fout);
 }
 
-/** Procedure compare()
-    The parameter dir indicates the sorting direction, ASCENDING
-    or DESCENDING; if (a[i] > a[j]) agrees with the direction,
-    then a[i] and a[j] are interchanged.
-**/
 void compare(int i, int j, int dir)
 {
     if (dir == (strcmp(strings + i * LENGTH, strings + j * LENGTH) > 0))
@@ -76,16 +66,13 @@ void compare(int i, int j, int dir)
     }
 }
 
-/** Procedure bitonicMerge()
-    Recursively sorts a bitonic sequence in ascending or descending order.
-**/
 void bitonicMerge(int lo, int cnt, int dir)
 {
     if (cnt > 1)
     {
         int k = cnt / 2;
-        // This loop processes independent pairs so it is safe to do in parallel.
-        // (You may also try to create tasks for very large 'cnt' if needed.)
+        // #pragma omp taskloop if (k > task_threshold) // this made it slower
+        // #pragma omp for // this doesnt work, the code never finishes
         for (int i = lo; i < lo + k; i++)
             compare(i, i + k, dir);
         bitonicMerge(lo, k, dir);
@@ -93,37 +80,24 @@ void bitonicMerge(int lo, int cnt, int dir)
     }
 }
 
-/** Function recBitonicSort()
-    First produces a bitonic sequence by recursively sorting its two halves
-    in opposite orders, then calls bitonicMerge to combine them.
-    We use OpenMP tasks to parallelize the recursive calls.
-**/
 void recBitonicSort(int lo, int cnt, int dir)
 {
     if (cnt > 1)
     {
         int k = cnt / 2;
-// Create tasks if the subproblem is large enough to justify the overhead.
-#pragma omp task firstprivate(lo, k) if (cnt > TASK_THRESHOLD)
+#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
         {
             recBitonicSort(lo, k, ASCENDING);
         }
-#pragma omp task firstprivate(lo, k) if (cnt > TASK_THRESHOLD)
+#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
         {
             recBitonicSort(lo + k, k, DESCENDING);
         }
-// Wait for the two recursive sorting tasks to complete.
 #pragma omp taskwait
-
-        // Merge the two sorted halves.
         bitonicMerge(lo, cnt, dir);
     }
 }
 
-/** Function BitonicSort()
-    Caller of recBitonicSort for sorting the entire array.
-    We create a parallel region with a single master thread to spawn tasks.
-**/
 void BitonicSort()
 {
 #pragma omp parallel
@@ -135,12 +109,12 @@ void BitonicSort()
     }
 }
 
-/** Main Program **/
 int main(int argc, char **argv)
 {
     long int i;
     char input_file[256] = INPUT_DIR DEFAULT_INPUT_FILE;
 
+    // Parse command-line arguments.
     for (int arg = 1; arg < argc; arg++)
     {
         if (strcmp(argv[arg], "-i") == 0 && arg + 1 < argc)
@@ -148,9 +122,18 @@ int main(int argc, char **argv)
             snprintf(input_file, sizeof(input_file), INPUT_DIR "%s", argv[arg + 1]);
             arg++;
         }
+        else if (strcmp(argv[arg], "-t") == 0 && arg + 1 < argc)
+        {
+            task_threshold = atoi(argv[arg + 1]);
+            arg++;
+        }
+        else if (strcmp(argv[arg], "-csv") == 0)
+        {
+            csv_mode = 1;
+        }
         else
         {
-            fprintf(stderr, "Usage: %s [-i input_file]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-i input_file] [-t task_threshold] [-csv]\n", argv[0]);
             exit(EXIT_FAILURE);
         }
     }
@@ -158,7 +141,6 @@ int main(int argc, char **argv)
     openfiles(input_file);
 
     fscanf(fin, "%ld", &N);
-
     if (N > 1073741824 || powersOfTwo[(int)log2(N)] != N)
     {
         printf("%ld is not a valid number: must be a power of 2 and less than 1073741824!\n", N);
@@ -175,15 +157,25 @@ int main(int argc, char **argv)
     for (i = 0; i < N; i++)
         fscanf(fin, "%s", strings + (i * LENGTH));
 
-    double initTime = omp_get_wtime();
+    double startTime = omp_get_wtime();
     BitonicSort();
-    printf("Total time = %.5lf seconds\n", omp_get_wtime() - initTime);
+    double total_time = omp_get_wtime() - startTime;
+
+    if (csv_mode)
+    {
+        int omp_threads = omp_get_max_threads();
+        printf("input_file,N,task_threshold,omp_num_threads,total_time\n");
+        printf("%s,%ld,%d,%d,%.6lf\n", input_file, N, task_threshold, omp_threads, total_time);
+    }
+    else
+    {
+        printf("Total time = %.6lf seconds\n", total_time);
+    }
 
     for (i = 0; i < N; i++)
         fprintf(fout, "%s\n", strings + (i * LENGTH));
 
     free(strings);
     closefiles();
-
     return EXIT_SUCCESS;
 }
