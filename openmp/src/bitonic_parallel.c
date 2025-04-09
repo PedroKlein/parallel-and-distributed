@@ -72,7 +72,7 @@ void bitonicMerge(int lo, int cnt, int dir)
     {
         int k = cnt / 2;
         // #pragma omp taskloop if (k > task_threshold) // this made it slower
-        // #pragma omp for // this doesnt work, the code never finishes
+        // #pragma omp parallel for // this makes it really slow
         for (int i = lo; i < lo + k; i++)
             compare(i, i + k, dir);
         bitonicMerge(lo, k, dir);
