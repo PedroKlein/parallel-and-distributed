@@ -27,6 +27,38 @@ unsigned long int powersOfTwo[] = {1,        2,        4,        8,         16, 
 
 int csv_mode = DEFAULT_CSV_MODE;
 
+void parseCommandLineArguments(int argc, char **argv, char *input_file, char *sort_method)
+{
+    for (int arg = 1; arg < argc; arg++)
+    {
+        if (strcmp(argv[arg], "-i") == 0 && arg + 1 < argc)
+        {
+            snprintf(input_file, 256, INPUT_DIR "%s", argv[arg + 1]);
+            arg++;
+        }
+        else if (strcmp(argv[arg], "-t") == 0 && arg + 1 < argc)
+        {
+            task_threshold = atoi(argv[arg + 1]);
+            arg++;
+        }
+        else if (strcmp(argv[arg], "-csv") == 0)
+        {
+            csv_mode = 1;
+        }
+        else if (strcmp(argv[arg], "-sort") == 0 && arg + 1 < argc)
+        {
+            strncpy(sort_method, argv[arg + 1], 32);
+            sort_method[31] = '\0'; // Ensure null-termination
+            arg++;
+        }
+        else
+        {
+            fprintf(stderr, "Usage: %s [-i input_file] [-t task_threshold] [-csv] [-sort method]\n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
 void openfiles(char *input_file)
 {
     fin = fopen(input_file, "r");
@@ -71,6 +103,19 @@ void bitonicMerge(int lo, int cnt, int dir)
     if (cnt > 1)
     {
         int k = cnt / 2;
+        int i;
+        for (i = lo; i < lo + k; i++)
+            compare(i, i + k, dir);
+        bitonicMerge(lo, k, dir);
+        bitonicMerge(lo + k, k, dir);
+    }
+}
+
+void bitonicMergeParallel(int lo, int cnt, int dir)
+{
+    if (cnt > 1)
+    {
+        int k = cnt / 2;
         // #pragma omp parallel for // this makes it slower
         for (int i = lo; i < lo + k; i++)
         {
@@ -79,11 +124,11 @@ void bitonicMerge(int lo, int cnt, int dir)
 
 #pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
         {
-            bitonicMerge(lo, k, dir);
+            bitonicMergeParallel(lo, k, dir);
         }
 #pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
         {
-            bitonicMerge(lo + k, k, dir);
+            bitonicMergeParallel(lo + k, k, dir);
         }
 #pragma omp taskwait
     }
@@ -94,27 +139,60 @@ void recBitonicSort(int lo, int cnt, int dir)
     if (cnt > 1)
     {
         int k = cnt / 2;
-#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
-        {
-            recBitonicSort(lo, k, ASCENDING);
-        }
-#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
-        {
-            recBitonicSort(lo + k, k, DESCENDING);
-        }
-#pragma omp taskwait
+        recBitonicSort(lo, k, ASCENDING);
+        recBitonicSort(lo + k, k, DESCENDING);
         bitonicMerge(lo, cnt, dir);
     }
 }
 
-void BitonicSort()
+void recBitonicSortParallel(int lo, int cnt, int dir)
+{
+    if (cnt > 1)
+    {
+        int k = cnt / 2;
+#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
+        {
+            recBitonicSortParallel(lo, k, ASCENDING);
+        }
+#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
+        {
+            recBitonicSortParallel(lo + k, k, DESCENDING);
+        }
+#pragma omp taskwait
+        bitonicMergeParallel(lo, cnt, dir);
+    }
+}
+
+void bitonicSort()
+{
+    recBitonicSort(0, N, ASCENDING);
+}
+
+void bitonicSortParallel()
 {
 #pragma omp parallel
     {
 #pragma omp single
         {
-            recBitonicSort(0, N, ASCENDING);
+            recBitonicSortParallel(0, N, ASCENDING);
         }
+    }
+}
+
+void sort(const char *method)
+{
+    if (strcmp(method, "bitonic") == 0)
+    {
+        bitonicSort();
+    }
+    else if (strcmp(method, "bitonic_parallel") == 0)
+    {
+        bitonicSortParallel();
+    }
+    else
+    {
+        fprintf(stderr, "Unknown sorting method: %s\n", method);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -122,30 +200,10 @@ int main(int argc, char **argv)
 {
     long int i;
     char input_file[256] = INPUT_DIR DEFAULT_INPUT_FILE;
+    char sort_method[32] = "bitonic_parallel"; // Default sorting method
 
     // Parse command-line arguments.
-    for (int arg = 1; arg < argc; arg++)
-    {
-        if (strcmp(argv[arg], "-i") == 0 && arg + 1 < argc)
-        {
-            snprintf(input_file, sizeof(input_file), INPUT_DIR "%s", argv[arg + 1]);
-            arg++;
-        }
-        else if (strcmp(argv[arg], "-t") == 0 && arg + 1 < argc)
-        {
-            task_threshold = atoi(argv[arg + 1]);
-            arg++;
-        }
-        else if (strcmp(argv[arg], "-csv") == 0)
-        {
-            csv_mode = 1;
-        }
-        else
-        {
-            fprintf(stderr, "Usage: %s [-i input_file] [-t task_threshold] [-csv]\n", argv[0]);
-            exit(EXIT_FAILURE);
-        }
-    }
+    parseCommandLineArguments(argc, argv, input_file, sort_method);
 
     openfiles(input_file);
 
@@ -167,7 +225,7 @@ int main(int argc, char **argv)
         fscanf(fin, "%s", strings + (i * LENGTH));
 
     double startTime = omp_get_wtime();
-    BitonicSort();
+    sort(sort_method);
     double total_time = omp_get_wtime() - startTime;
 
     if (csv_mode)
