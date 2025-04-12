@@ -11,7 +11,7 @@ int task_threshold = 2048;
 
 #define OUTPUT_DIR "output/"
 #define INPUT_DIR "data/"
-#define DEFAULT_INPUT_FILE "in_1048576.in"
+#define DEFAULT_INPUT_FILE "in_8388608.in"
 
 FILE *fin, *fout;
 char *strings;
@@ -71,12 +71,21 @@ void bitonicMerge(int lo, int cnt, int dir)
     if (cnt > 1)
     {
         int k = cnt / 2;
-        // #pragma omp taskloop if (k > task_threshold) // this made it slower
-        // #pragma omp parallel for // this makes it really slow
+        // #pragma omp parallel for // this makes it slower
         for (int i = lo; i < lo + k; i++)
+        {
             compare(i, i + k, dir);
-        bitonicMerge(lo, k, dir);
-        bitonicMerge(lo + k, k, dir);
+        }
+
+#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
+        {
+            bitonicMerge(lo, k, dir);
+        }
+#pragma omp task firstprivate(lo, k) if (cnt > task_threshold)
+        {
+            bitonicMerge(lo + k, k, dir);
+        }
+#pragma omp taskwait
     }
 }
 
