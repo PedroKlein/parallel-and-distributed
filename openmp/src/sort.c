@@ -11,7 +11,7 @@ int task_threshold = 2048;
 
 #define OUTPUT_DIR "output/"
 #define INPUT_DIR "data/"
-#define DEFAULT_INPUT_FILE "in_8388608.in"
+#define DEFAULT_INPUT_FILE "in_16777216.in"
 
 FILE *fin, *fout;
 char *strings;

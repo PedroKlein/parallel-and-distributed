@@ -24,3 +24,5 @@
 *.vscode/
 .idea/
 build/*
+
+data/in_16777216.in
