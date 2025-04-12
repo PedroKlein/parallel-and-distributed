@@ -179,6 +179,87 @@ void bitonicSortParallel()
     }
 }
 
+void merge(int low, int mid, int high)
+{
+    int n1 = mid - low;
+    int n2 = high - mid;
+    char *temp = (char *)malloc((n1 + n2) * LENGTH);
+    if (temp == NULL)
+    {
+        perror("malloc temp");
+        exit(EXIT_FAILURE);
+    }
+    int i = 0, j = 0;
+    while (i < n1 && j < n2)
+    {
+        if (strcmp(strings + (low + i) * LENGTH, strings + (mid + j) * LENGTH) <= 0)
+        {
+            memcpy(temp + (i + j) * LENGTH, strings + (low + i) * LENGTH, LENGTH);
+            i++;
+        }
+        else
+        {
+            memcpy(temp + (i + j) * LENGTH, strings + (mid + j) * LENGTH, LENGTH);
+            j++;
+        }
+    }
+    while (i < n1)
+    {
+        memcpy(temp + (i + j) * LENGTH, strings + (low + i) * LENGTH, LENGTH);
+        i++;
+    }
+    while (j < n2)
+    {
+        memcpy(temp + (i + j) * LENGTH, strings + (mid + j) * LENGTH, LENGTH);
+        j++;
+    }
+    memcpy(strings + low * LENGTH, temp, (n1 + n2) * LENGTH);
+    free(temp);
+}
+
+void recMergeSort(int low, int high)
+{
+    if (high - low < 2)
+        return;
+    int mid = (low + high) / 2;
+    recMergeSort(low, mid);
+    recMergeSort(mid, high);
+    merge(low, mid, high);
+}
+
+void recMergeSortParallel(int low, int high)
+{
+    if (high - low < 2)
+        return;
+    int mid = (low + high) / 2;
+#pragma omp task firstprivate(low, mid) if ((high - low) > task_threshold)
+    {
+        recMergeSortParallel(low, mid);
+    }
+#pragma omp task firstprivate(mid, high) if ((high - low) > task_threshold)
+    {
+        recMergeSortParallel(mid, high);
+    }
+#pragma omp taskwait
+    merge(low, mid, high);
+}
+
+void mergeSort()
+{
+    recMergeSort(0, N);
+}
+
+void mergeSortParallel()
+{
+#pragma omp parallel
+    {
+#pragma omp single
+        {
+            recMergeSortParallel(0, N);
+        }
+    }
+}
+
 void sort(const char *method)
 {
     if (strcmp(method, "bitonic") == 0)
@@ -188,6 +269,14 @@ void sort(const char *method)
     else if (strcmp(method, "bitonic_parallel") == 0)
     {
         bitonicSortParallel();
+    }
+    else if (strcmp(method, "mergesort") == 0)
+    {
+        mergeSort();
+    }
+    else if (strcmp(method, "mergesort_parallel") == 0)
+    {
+        mergeSortParallel();
     }
     else
     {
@@ -202,7 +291,6 @@ int main(int argc, char **argv)
     char input_file[256] = INPUT_DIR DEFAULT_INPUT_FILE;
     char sort_method[32] = "bitonic_parallel"; // Default sorting method
 
-    // Parse command-line arguments.
     parseCommandLineArguments(argc, argv, input_file, sort_method);
 
     openfiles(input_file);
