@@ -61,6 +61,7 @@ with open(output_csv, mode="w", newline='') as csvfile:
                     for rep in range(repetitions):
                         env = os.environ.copy()
                         env["OMP_NUM_THREADS"] = str(thr)
+                        env["OMP_PROC_BIND"] = "TRUE"
                         
                         cmd = [binary, "-i", input_file, "-t", str(thres), "-csv", "-sort", sort_method]
                         try:
