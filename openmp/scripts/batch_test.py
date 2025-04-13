@@ -44,9 +44,7 @@ with open(output_csv, mode="w", newline='') as csvfile:
     csvwriter.writerow(["sort_method", "input_file", "N", "task_threshold", "omp_num_threads",
                         "repetitions", "mean_time", "std_deviation", "individual_times"])
     
-    # Outer loop: iterate over sort methods.
     for sort_method in sort_methods:
-        # Decide which thread and threshold values to use.
         if sort_method in ["bitonic", "mergesort"]:
             thr_list = sequential_thr
             thres_list = sequential_thresholds
@@ -54,19 +52,16 @@ with open(output_csv, mode="w", newline='') as csvfile:
             thr_list = thread_counts
             thres_list = thresholds
 
-        # Iterate over input files and configurations.
         for input_file in input_files:
             for thr in thr_list:
                 for thres in thres_list:
                     times = []
                     reported_N = None
-                    # Run the execution multiple times.
+
                     for rep in range(repetitions):
-                        # Set environment variable for number of OpenMP threads.
                         env = os.environ.copy()
                         env["OMP_NUM_THREADS"] = str(thr)
                         
-                        # Build the command, including the sort method.
                         cmd = [binary, "-i", input_file, "-t", str(thres), "-csv", "-sort", sort_method]
                         try:
                             result = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, 
@@ -77,12 +72,10 @@ with open(output_csv, mode="w", newline='') as csvfile:
 
                         lines = result.stdout.strip().splitlines()
                         for line in lines:
-                            # Skip header lines.
                             if line.startswith("input_file") or line.startswith("sort_method"):
                                 continue
 
                             parts = line.split(",")
-                            # The expected CSV format: input_file,N,task_threshold,omp_num_threads,total_time
                             if len(parts) == 5:
                                 _, N_val, _, _, time_val = parts
                                 try:

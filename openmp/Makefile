@@ -1,10 +1,13 @@
 CC = gcc
-CFLAGS = -fopenmp -O2 -std=c99
-LDFLAGS = -fopenmp -lm
+DEFAULT_CFLAGS = -fopenmp -O2 -std=c99
+DEFAULT_LDFLAGS = -fopenmp -lm
 
 ifdef PROFILING
-	CFLAGS = $(CFLAGS) -pg
-	LDFLAGS = $(LDFLAGS) -pg
+	CFLAGS = $(DEFAULT_CFLAGS) -g
+	LDFLAGS = $(DEFAULT_LDFLAGS) -g
+else
+	CFLAGS = $(DEFAULT_CFLAGS)
+	LDFLAGS = $(DEFAULT_LDFLAGS)
 endif
 
 TARGETS = build/test build/sort
