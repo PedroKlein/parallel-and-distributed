@@ -4,6 +4,7 @@ import os
 def run_test_with_vtune(binary, analysis_type, result_dir, input_file, task_threshold, sort_method, omp_threads):
     env = os.environ.copy()
     env["OMP_NUM_THREADS"] = str(omp_threads)
+    env["OMP_PROC_BIND"] = "TRUE"
     vtune_cmd = [
         "vtune", "-collect", analysis_type,
         "-result-dir", result_dir, "--",
@@ -20,10 +21,10 @@ def run_test_with_vtune(binary, analysis_type, result_dir, input_file, task_thre
 # Example use:
 binary = "./build/sort"
 input_file = "in_16777216.in"
-task_threshold = 2048
+task_threshold = 1024
 sort_method = "bitonic_parallel"
 omp_threads = 4 
-analysis_type = "hotspots"  # "performance-snapshot" or "hpc-performance"
+analysis_type = "hotspots"  # "performance-snapshot", "hpc-performance" or "threading"
 result_dir = "vtune_results_hotspots"
 
 output = run_test_with_vtune(binary, analysis_type, result_dir, input_file, task_threshold, sort_method, omp_threads)
