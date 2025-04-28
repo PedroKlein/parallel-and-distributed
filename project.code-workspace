@@ -7,6 +7,10 @@
 		{
 			"path": "openmp",
 			"name": "OpenMP"
+		},
+		{
+			"path": "mpi",
+			"name": "MPI"
 		}
 	],
 	"settings": {
