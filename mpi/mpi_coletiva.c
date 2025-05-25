@@ -29,14 +29,19 @@ int main(int argc, char* argv[]) {
     double* local_A = (double*)malloc((n * n / size) * sizeof(double));
     double* local_C = (double*)malloc((n * n / size) * sizeof(double));
 
+    double t_start, t_end, comm_start, comm_end, comp_start, comp_end;
+    t_start = MPI_Wtime();
+
     double t1, t2;
     if(rank == 0)
 	    t1 = MPI_Wtime();
 
-
+    comm_start = MPI_Wtime();
     MPI_Scatter(A, n * n / size, MPI_DOUBLE, local_A, n * n / size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    comm_end = MPI_Wtime();
 
+    comp_start = MPI_Wtime();
     for (int i = 0; i < n / size; i++) {
         for (int j = 0; j < n; j++) {
             local_C[i * n + j] = 0.0;
@@ -45,8 +50,13 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+    comp_end = MPI_Wtime();
 
+    comm_start = MPI_Wtime();
     MPI_Gather(local_C, n * n / size, MPI_DOUBLE, C, n * n / size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    comm_end += MPI_Wtime() - comm_start;
+
+    t_end = MPI_Wtime();
 
     if(rank == 0){
 	    t2 = MPI_Wtime();
@@ -63,6 +73,15 @@ int main(int argc, char* argv[]) {
         }
     }
 */
+    if (rank == 0) {
+        double total_time = t_end - t_start;
+        double comm_time = (comm_end - comm_start);
+        double comp_time = comp_end - comp_start;
+        printf("Execution time: %.6f\n", total_time);
+        printf("Communication time: %.6f\n", comm_time);
+        printf("Computation time: %.6f\n", comp_time);
+    }
+
     free(A);
     free(B);
     free(C);
