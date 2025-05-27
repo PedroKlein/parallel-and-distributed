@@ -16,6 +16,7 @@
 	"settings": {
 		"files.exclude": {
 			"openmp/": true,
+			"mpi/": true,
 		},
 		"search.exclude": {
 			"**/build/*": true,
