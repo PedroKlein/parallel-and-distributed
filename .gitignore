@@ -1,1 +1,26 @@
 **/.DS_Store
+# Ignore build directories
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+
+# Ignore executables and libraries
+*.exe
+*.out
+*.o
+*.a
+*.so
+*.dylib
+
+# Ignore generated files
+*.log
+*.tmp
+*.bak
+
+# Ignore editor and OS specific files
+*.swp
+*.DS_Store
+*.vscode/
+.idea/
