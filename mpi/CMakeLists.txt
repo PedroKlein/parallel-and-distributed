@@ -1,18 +1,21 @@
 cmake_minimum_required(VERSION 3.10)
-project(mpi_matrix_multiplication C)
+project(mpi_matmult C)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 find_package(MPI REQUIRED)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_C_LINK_FLAGS}")
+include_directories(include)
 
-include_directories(${MPI_C_INCLUDE_PATH})
+set(SOURCES
+    src/main.c
+    src/collective.c
+    src/sync.c
+    src/async.c
+    src/async_naive.c
+)
 
-add_executable(mpi_coletiva mpi_coletiva.c)
-add_executable(mpi_p2p_bloqueante mpi_p2p_bloqueante.c)
-add_executable(mpi_p2p_naobloqueante mpi_p2p_naobloqueante.c)
+add_executable(mpi_matmult ${SOURCES})
 
-target_link_libraries(mpi_coletiva ${MPI_C_LIBRARIES})
-target_link_libraries(mpi_p2p_bloqueante ${MPI_C_LIBRARIES})
-target_link_libraries(mpi_p2p_naobloqueante ${MPI_C_LIBRARIES})
+target_link_libraries(mpi_matmult PRIVATE MPI::MPI_C)
