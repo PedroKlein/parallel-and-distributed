@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
     {
         if (rank == 0)
         {
-            fprintf(stderr, "Uso: mpirun -np <procs> %s <n> <comm_type> [--validate]\n", argv[0]);
-            fprintf(stderr, "Tipos de comunicação: collective, sync, async, async_naive\n");
+            fprintf(stderr, "Usage: mpirun -np <procs> %s <n> <comm_type> [--validate]\n", argv[0]);
+            fprintf(stderr, "Communication types: collective, sync, async, async_naive\n");
         }
         MPI_Finalize();
         return 1;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     {
         if (rank == 0)
         {
-            fprintf(stderr, "Erro: O tamanho da matriz (n) deve ser divisível pelo número de processos (size).\n");
+            fprintf(stderr, "Error: Matrix size (n) must be divisible by the number of processes (size).\n");
         }
         MPI_Finalize();
         return 1;
@@ -89,33 +89,33 @@ int main(int argc, char *argv[])
     {
         if (rank == 0)
         {
-            fprintf(stderr, "Erro: Tipo de comunicação '%s' inválido.\n", comm_type);
+            fprintf(stderr, "Error: Invalid communication type '%s'.\n", comm_type);
         }
     }
 
-    // --- Etapa de Validação (Fora da cronometragem) ---
+    // --- Validation Step (Outside timing) ---
     if (rank == 0 && validation_enabled)
     {
-        printf("--- Iniciando Validação ---\n");
+        printf("--- Starting Validation ---\n");
         double *C_sequential = (double *)malloc(n * n * sizeof(double));
         if (C_sequential == NULL)
         {
-            fprintf(stderr, "Falha ao alocar memória para a matriz de validação.\n");
+            fprintf(stderr, "Failed to allocate memory for validation matrix.\n");
         }
         else
         {
-            printf("Calculando resultado sequencial para comparação...\n");
+            printf("Calculating sequential result for comparison...\n");
             sequential_matrix_multiplication(n, A, B, C_sequential);
 
-            printf("Comparando resultado paralelo com sequencial...\n");
+            printf("Comparing parallel result with sequential...\n");
             validate_results(n, C, C_sequential);
 
             free(C_sequential);
         }
-        printf("--- Validação Concluída ---\n");
+        printf("--- Validation Finished ---\n");
     }
 
-    // Limpeza
+    // Cleanup
     free(B);
     free(local_A);
     free(local_C);
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 }
 
 /**
- * @brief Calcula a multiplicação de matrizes C = A * B de forma puramente sequencial.
+ * @brief Computes matrix multiplication C = A * B sequentially.
  */
 void sequential_matrix_multiplication(int n, double *A, double *B, double *C_sequential)
 {
@@ -149,12 +149,12 @@ void sequential_matrix_multiplication(int n, double *A, double *B, double *C_seq
 }
 
 /**
- * @brief Compara duas matrizes, C_parallel e C_sequential, elemento por elemento.
- * @return Retorna true se forem iguais (dentro de uma tolerância), false caso contrário.
+ * @brief Compares two matrices, C_parallel and C_sequential, element by element.
+ * @return Returns true if they are equal (within a tolerance), false otherwise.
  */
 bool validate_results(int n, double *C_parallel, double *C_sequential)
 {
-    const double epsilon = 1e-6; // tolerância para erros de ponto flutuante
+    const double epsilon = 1e-6; // tolerance for floating point errors
 
     for (int i = 0; i < n * n; i++)
     {
@@ -162,15 +162,15 @@ bool validate_results(int n, double *C_parallel, double *C_sequential)
         {
             int row = i / n;
             int col = i % n;
-            fprintf(stderr, "ERRO DE VALIDAÇÃO na posição [%d][%d]!\n", row, col);
-            fprintf(stderr, "  - Valor Paralelo:   %f\n", C_parallel[i]);
-            fprintf(stderr, "  - Valor Sequencial: %f\n", C_sequential[i]);
-            fprintf(stderr, "  - Diferença:        %e\n", fabs(C_parallel[i] - C_sequential[i]));
-            printf("VALIDAÇÃO FALHOU.\n");
+            fprintf(stderr, "VALIDATION ERROR at position [%d][%d]!\n", row, col);
+            fprintf(stderr, "  - Parallel Value:   %f\n", C_parallel[i]);
+            fprintf(stderr, "  - Sequential Value: %f\n", C_sequential[i]);
+            fprintf(stderr, "  - Difference:       %e\n", fabs(C_parallel[i] - C_sequential[i]));
+            printf("VALIDATION FAILED.\n");
             return false;
         }
     }
 
-    printf("VALIDAÇÃO BEM-SUCEDIDA: O resultado paralelo está correto.\n");
+    printf("VALIDATION SUCCESSFUL: The parallel result is correct.\n");
     return true;
 }

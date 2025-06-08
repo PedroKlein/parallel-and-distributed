@@ -3,7 +3,7 @@
 #SBATCH --partition=hype
 #SBATCH --nodes=2
 #SBATCH --ntasks=40
-#SBATCH --time=2:00:00
+#SBATCH --time=23:00:00
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x_%j.err
 

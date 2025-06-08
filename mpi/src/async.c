@@ -25,7 +25,7 @@ void run_async(int n, int rank, int size, double *A, double *B, double *C, doubl
             local_A[i] = A[i];
         MPI_Ibcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD, &bcast_req);
         MPI_Wait(&bcast_req, MPI_STATUS_IGNORE);
-        free(send_requests); // Libera requests de envio, que não precisam mais ser monitoradas pelo rank 0
+        free(send_requests); // Free send requests, no longer need to be monitored by rank 0
     }
     else
     {

@@ -26,12 +26,12 @@ void run_async_naive(int n, int rank, int size, double *A, double *B, double *C,
     }
     else
     {
-        // Recebe a parte de A e espera imediatamente.
+        // Receive part of A and wait immediately.
         MPI_Irecv(local_A, elements_per_proc, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &request);
         MPI_Wait(&request, MPI_STATUS_IGNORE);
     }
 
-    // Broadcast de B e espera imediatamente.
+    // Broadcast B and wait immediately.
     MPI_Ibcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD, &request);
     MPI_Wait(&request, MPI_STATUS_IGNORE);
     comm_time += MPI_Wtime() - comm_phase_start;
@@ -57,7 +57,7 @@ void run_async_naive(int n, int rank, int size, double *A, double *B, double *C,
         {
             C[i] = local_C[i];
         }
-        // Recebe de cada trabalhador e espera dentro do loop.
+        // Receive from each worker and wait inside the loop.
         for (int i = 1; i < size; i++)
         {
             MPI_Irecv(C + i * elements_per_proc, elements_per_proc, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, &request);
@@ -66,7 +66,7 @@ void run_async_naive(int n, int rank, int size, double *A, double *B, double *C,
     }
     else
     {
-        // Envia o resultado e espera imediatamente.
+        // Send the result and wait immediately.
         MPI_Isend(local_C, elements_per_proc, MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &request);
         MPI_Wait(&request, MPI_STATUS_IGNORE);
     }
