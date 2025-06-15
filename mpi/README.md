@@ -60,9 +60,9 @@ This command will create a `build/` directory, run CMake to configure the projec
 
 ## 6. How to Run
 
-The `Makefile` also provides several targets to easily run the application in different modes.
+The `Makefile` also provides several targets to easily run the application in different modes, including inside Docker Compose for local multi-node testing.
 
-### Single Run
+### Single Run (Native)
 
 To execute a single instance of the program for a quick test. You can override the default parameters (`NP`, `N`, `COMM_TYPE`) directly from the command line.
 
@@ -97,6 +97,37 @@ make test
 ```
 This script will iterate through all combinations of communication types, matrix sizes, and process counts defined within it. Upon completion, it will generate a `mpi_results.csv` file containing aggregated performance data (mean, standard deviation) for each configuration, which can then be used for plotting and analysis.
 
+### Running in Docker Compose (Local Multi-Node Testing)
+
+To test your MPI code locally with multiple nodes using Docker Compose:
+
+1. Build and start the cluster:
+
+   ```bash
+   docker-compose build
+   docker-compose up -d
+   ```
+
+2. Run the MPI application in the cluster:
+
+   ```bash
+   make run-docker NP=4 N=1024 COMM_TYPE=collective
+   ```
+   - This runs the application across the main and 3 worker nodes.
+
+3. Run the batch test in the cluster:
+
+   ```bash
+   make batch-test-docker
+   ```
+   - This executes the batch test script inside the main node container.
+
+4. To stop the cluster:
+
+   ```bash
+   docker-compose down
+   ```
+
 ## 7. Cleaning Up
 
 To remove the `build` directory and all generated files (including `mpi_results.csv`), run:
@@ -104,3 +135,60 @@ To remove the `build` directory and all generated files (including `mpi_results.
 ```bash
 make clean
 ```
+
+## 8. Running a Local SLURM Cluster with Docker Compose
+
+You can simulate an HPC SLURM environment locally using Docker Compose. This allows you to submit jobs to a master node, which will schedule them across worker nodes, just like on a real cluster.
+
+### Quick Start
+
+1. **Start the cluster:**
+
+   ```bash
+   make start-docker-cluster
+   ```
+
+2. **SSH into the master node:**
+
+   ```bash
+   make ssh-master
+   # or manually:
+   ssh root@localhost -p 2222
+   # (password: root)
+   ```
+
+3. **Submit a SLURM batch job:**
+
+   ```bash
+   make submit-job
+   # or, inside the master node:
+   sbatch /workspace/hype.slurm
+   ```
+
+4. **Check SLURM job status:**
+
+   ```bash
+   make slurm-status
+   # or, inside the master node:
+   squeue -u root
+   ```
+
+5. **Cancel the last SLURM job:**
+
+   ```bash
+   make slurm-cancel
+   # or, inside the master node:
+   scancel $(squeue -u root -h -o '%A' | head -n 1)
+   ```
+
+6. **Stop the cluster:**
+
+   ```bash
+   make stop-docker-cluster
+   ```
+
+### Notes
+- All project files are shared between your host and the containers via `/workspace`.
+- Only the master node exposes SSH (port 2222).
+- You can edit code on your host and immediately run jobs in the cluster.
+- The default SSH password is `root` (for local testing only).
