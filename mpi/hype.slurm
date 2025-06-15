@@ -3,7 +3,7 @@
 #SBATCH --partition=hype
 #SBATCH --nodes=2
 #SBATCH --ntasks=40
-#SBATCH --time=23:00:00
+#SBATCH --time=23:59:59
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x_%j.err
 
@@ -28,8 +28,9 @@ echo "Created machinefile: $MACHINEFILE"
 EXECUTABLE="build/mpi_matmult"
 PYTHON_SCRIPT="scripts/batch_test.py"
 
+echo "--- Running MPI Matrix Multiplication Batch Test ---"
 # Execute the Python batch test script.
 # We pass it the path to the C executable and the generated machinefile.
-python3 $PYTHON_SCRIPT $EXECUTABLE $MACHINEFILE
+python3 -u $PYTHON_SCRIPT $EXECUTABLE $MACHINEFILE
 
 echo "--- Job Finished ---"

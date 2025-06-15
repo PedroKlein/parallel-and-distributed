@@ -57,6 +57,18 @@ clean:
 	@rm -rf build mpi_results.csv
 	@echo "--- [CLEAN] Clean finished. ---"
 
+
+run-batch:
+	sbatch hype.slurm
+
+get-status:
+	@echo "--- [STATUS] Checking the status of the last batch job ---"
+	@squeue -u $$(whoami)
+
+cancel-batch:
+	@echo "--- [CANCEL] Cancelling the last batch job ---"
+	@scancel $$(squeue -u $$(whoami) -h -o "%A" | head -n 1)
+
 # A help target to display available commands.
 help:
 	@echo "Makefile for the MPI Matrix Multiplication Project"
