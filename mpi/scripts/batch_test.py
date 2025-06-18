@@ -49,21 +49,18 @@ def main():
     repetitions = 5
 
     comm_types = ["collective", "sync", "async_naive", "async"]
-    matrix_sizes = [128, 256, 512, 1024, 2048, 4096, 8192, 16384]
+    matrix_sizes = [8192]  # Always use fixed array size 8192
 
     # Set the number of processes based on the environment
     if IS_SLURM_RUN:
         total_tasks = int(os.environ.get('SLURM_NTASKS', 1))
         print("--- Running in SLURM environment ---")
+        process_counts = [total_tasks]  # Always use the number of processes defined in SLURM
     else: # Local
         total_tasks = os.cpu_count() or 4
         print("--- Running in LOCAL environment ---")
+        process_counts = [total_tasks]  # Always use all available CPUs locally
         
-    process_counts = [2**i for i in range(1, total_tasks.bit_length()) if 2**i <= total_tasks]
-    # Ensure the maximum number of processes is tested if not a power of 2
-    if not process_counts or process_counts[-1] != total_tasks:
-        process_counts.append(total_tasks)
-
     print("Starting test batch...")
     print(f"Executable: {executable}")
     print(f"Communication Types: {comm_types}")

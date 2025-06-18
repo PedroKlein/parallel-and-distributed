@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=mpi_coletiva
 #SBATCH --partition=hype
-#SBATCH --nodes=2
+#SBATCH --nodes=1
 #SBATCH --ntasks=32
 #SBATCH --time=2:00:00
 #SBATCH --output=%x_%j.out
@@ -15,4 +15,4 @@ mpirun -np $SLURM_NTASKS \
        --mca btl ^openib \
        --mca btl_tcp_if_include eno2 \
        --bind-to none \
-       ./mpi_coletiva 16384
+       ./build/mpi_coletiva 4096

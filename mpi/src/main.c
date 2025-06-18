@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "comm_strategies.h"
 
@@ -20,17 +21,25 @@ void initialize_matrices(int n, double *A, double *B, double *C)
     }
 }
 
+bool verbose = false; // Make verbose available to other files
+
 int main(int argc, char *argv[])
 {
+    double start_time = 0.0, end_time = 0.0;
     int rank = 0;
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (argc < 3 || argc > 4)
+    if (rank == 0)
+    {
+        start_time = MPI_Wtime();
+    }
+
+    if (argc < 3 || argc > 5)
     {
         if (rank == 0)
         {
-            fprintf(stderr, "Usage: mpirun -np <procs> %s <n> <comm_type> [--validate]\n", argv[0]);
+            fprintf(stderr, "Usage: mpirun -np <procs> %s <n> <comm_type> [--validate] [--verbose]\n", argv[0]);
             fprintf(stderr, "Communication types: collective, sync, async, async_naive\n");
         }
         MPI_Finalize();
@@ -42,7 +51,16 @@ int main(int argc, char *argv[])
 
     int n = atoi(argv[1]);
     char *comm_type = argv[2];
-    bool validation_enabled = (argc == 4 && strcmp(argv[3], "--validate") == 0);
+    bool validation_enabled = false;
+
+    // Parse optional flags
+    for (int i = 3; i < argc; i++)
+    {
+        if (strcmp(argv[i], "--validate") == 0)
+            validation_enabled = true;
+        if (strcmp(argv[i], "--verbose") == 0)
+            verbose = true;
+    }
 
     if (n % size != 0)
     {
@@ -67,6 +85,16 @@ int main(int argc, char *argv[])
         A = (double *)malloc(n * n * sizeof(double));
         C = (double *)malloc(n * n * sizeof(double));
         initialize_matrices(n, A, B, C);
+        if (verbose)
+        {
+            printf("[VERBOSE] Matrix size: %d x %d\n", n, n);
+            printf("[VERBOSE] Number of processes: %d\n", size);
+        }
+    }
+
+    if (verbose && rank == 0)
+    {
+        printf("[VERBOSE] Communication type: %s\n", comm_type);
     }
 
     if (strcmp(comm_type, "collective") == 0)
@@ -91,6 +119,12 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "Error: Invalid communication type '%s'.\n", comm_type);
         }
+    }
+
+    if (verbose && rank == 0)
+    {
+        end_time = MPI_Wtime();
+        printf("[VERBOSE] Total execution time: %.6f seconds\n", end_time - start_time);
     }
 
     // --- Validation Step (Outside timing) ---

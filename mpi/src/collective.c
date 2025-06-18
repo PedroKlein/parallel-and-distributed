@@ -1,6 +1,9 @@
 #include "comm_strategies.h"
 #include <mpi.h>
+#include <stdbool.h>
 #include <stdio.h>
+
+extern bool verbose;
 
 void run_collective(int n, int rank, int size, double *A, double *B, double *C, double *local_A, double *local_C)
 {
@@ -39,6 +42,15 @@ void run_collective(int n, int rank, int size, double *A, double *B, double *C, 
     {
         double total_time = total_end_time - total_start_time;
         double comp_time = comp_end_time - comp_start_time;
-        printf("collective,%d,%d,%.6f,%.6f,%.6f\n", n, size, total_time, comm_time, comp_time);
+        if (verbose)
+        {
+            printf("[VERBOSE] CSV Output: comm_type=collective, matrix_size=%d, num_procs=%d, total_time=%.6f, "
+                   "comm_time=%.6f, comp_time=%.6f\n",
+                   n, size, total_time, comm_time, comp_time);
+        }
+        else
+        {
+            printf("collective,%d,%d,%.6f,%.6f,%.6f\n", n, size, total_time, comm_time, comp_time);
+        }
     }
 }

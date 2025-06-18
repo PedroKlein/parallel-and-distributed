@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=mpi_coletiva
 #SBATCH --partition=hype
-#SBATCH --nodes=2
+#SBATCH --nodes=1
 #SBATCH --ntasks=32
-#SBATCH --time=00:05:00
+#SBATCH --time=00:15:00
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x_%j.err
 
@@ -15,4 +15,4 @@ mpirun -np $SLURM_NTASKS  \
        --mca btl ^openib \
        --mca btl_tcp_if_include eno2 \
        --mca mtl ^ofi \
-       ./build/mpi_matmult 128 collective
+       ./build/mpi_matmult 8192 collective --verbose
