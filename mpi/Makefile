@@ -69,6 +69,40 @@ cancel-batch:
 	@echo "--- [CANCEL] Cancelling the last batch job ---"
 	@scancel $$(squeue -u $$(whoami) -h -o "%A" | head -n 1)
 
+# Run the MPI application in the Docker Compose cluster
+run-docker: build
+	@echo "--- [DOCKER] Running MPI in Docker Compose cluster ---"
+	@docker-compose exec main mpirun --allow-run-as-root -np $(NP) -host main,node1,node2,node3 /workspace/build/mpi_matmult $(N) $(COMM_TYPE)
+
+# Run the batch test in the Docker Compose cluster
+batch-test-docker: build
+	@echo "--- [DOCKER] Running batch test in Docker Compose cluster ---"
+	@docker-compose exec main python3 /workspace/scripts/batch_test.py /workspace/build/mpi_matmult
+
+# Start the Docker SLURM cluster
+start-docker-cluster:
+	docker-compose up -d --build
+
+# Stop the Docker SLURM cluster
+stop-docker-cluster:
+	docker-compose down
+
+# SSH into the master node (default password: root)
+ssh-master:
+	ssh root@localhost -p 2222
+
+# Submit a SLURM batch job from inside the master node
+submit-job:
+	ssh root@localhost -p 2222 "sbatch /workspace/hype.slurm"
+
+# Show SLURM queue status from master
+slurm-status:
+	ssh root@localhost -p 2222 "squeue -u root"
+
+# Cancel the last SLURM job from master
+slurm-cancel:
+	ssh root@localhost -p 2222 "scancel \$(squeue -u root -h -o '%A' | head -n 1)"
+
 # A help target to display available commands.
 help:
 	@echo "Makefile for the MPI Matrix Multiplication Project"
