@@ -9,7 +9,11 @@ extern bool verbose;
 void run_async_new(int n, int rank, int size, double *A, double *B, double *C, double *local_A, double *local_C)
 {
     int elements_per_proc = n * n / size;
-    double total_start_time, total_end_time, comm_time = 0.0, comp_start_time, comp_end_time, comm_phase_start;
+    double total_start_time, total_end_time;
+
+    // Local timers for each process
+    double comm_time = 0.0, comp_time = 0.0;
+    double comp_start_time, comp_end_time, comm_phase_start;
 
     MPI_Barrier(MPI_COMM_WORLD);
     total_start_time = MPI_Wtime();
@@ -28,7 +32,7 @@ void run_async_new(int n, int rank, int size, double *A, double *B, double *C, d
             local_A[i] = A[i];
         MPI_Ibcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD, &bcast_req);
         MPI_Wait(&bcast_req, MPI_STATUS_IGNORE);
-        free(send_requests); // Free send requests, no longer need to be monitored by rank 0
+        free(send_requests);
     }
     else
     {
@@ -40,6 +44,7 @@ void run_async_new(int n, int rank, int size, double *A, double *B, double *C, d
     }
     comm_time += MPI_Wtime() - comm_phase_start;
 
+    // Timing of the computation block
     comp_start_time = MPI_Wtime();
     for (int i = 0; i < n / size; i++)
     {
@@ -53,7 +58,9 @@ void run_async_new(int n, int rank, int size, double *A, double *B, double *C, d
         }
     }
     comp_end_time = MPI_Wtime();
+    comp_time = comp_end_time - comp_start_time; // Store local computation time
 
+    // Timing of the gather block
     comm_phase_start = MPI_Wtime();
     if (rank == 0)
     {
@@ -76,21 +83,26 @@ void run_async_new(int n, int rank, int size, double *A, double *B, double *C, d
     }
     comm_time += MPI_Wtime() - comm_phase_start;
 
+    MPI_Barrier(MPI_COMM_WORLD);
     total_end_time = MPI_Wtime();
+
+    double max_comm_time, max_comp_time;
+
+    MPI_Reduce(&comm_time, &max_comm_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&comp_time, &max_comp_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     if (rank == 0)
     {
         double total_time = total_end_time - total_start_time;
-        double comp_time = comp_end_time - comp_start_time;
         if (verbose)
         {
             printf("[VERBOSE] CSV Output: comm_type=async_new, matrix_size=%d, num_procs=%d, total_time=%.6f, "
                    "comm_time=%.6f, comp_time=%.6f\n",
-                   n, size, total_time, comm_time, comp_time);
+                   n, size, total_time, max_comm_time, max_comp_time);
         }
         else
         {
-            printf("async_new,%d,%d,%.6f,%.6f,%.6f\n", n, size, total_time, comm_time, comp_time);
+            printf("async_new,%d,%d,%.6f,%.6f,%.6f\n", n, size, total_time, max_comm_time, max_comp_time);
         }
     }
 }
