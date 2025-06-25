@@ -54,10 +54,12 @@ def main():
     # Set the number of processes based on the environment
     if IS_SLURM_RUN:
         total_tasks = int(os.environ.get('SLURM_NTASKS', 1))
+        num_nodes = int(os.environ.get('SLURM_JOB_NUM_NODES', 1))
         print("--- Running in SLURM environment ---")
         process_counts = [total_tasks]  # Always use the number of processes defined in SLURM
     else: # Local
         total_tasks = os.cpu_count() or 4
+        num_nodes = 1
         print("--- Running in LOCAL environment ---")
         process_counts = [total_tasks]  # Always use all available CPUs locally
         
@@ -74,7 +76,7 @@ def main():
     with open(output_csv_file, mode="w", newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow([
-            "comm_type", "matrix_size", "num_procs", "environment",
+            "comm_type", "matrix_size", "num_procs", "nodes", "environment",
             "total_time_mean", "total_time_std", "comm_time_mean", "comm_time_std",
             "comp_time_mean", "comp_time_std", "repetitions"
         ])
@@ -119,7 +121,7 @@ def main():
                         comp_mean, comp_std = calculate_stats(times_data['comp'])
                         
                         csv_writer.writerow([
-                            comm_type, n, p, job_id,
+                            comm_type, n, p, num_nodes, job_id,
                             f"{total_mean:.6f}", f"{total_std:.6f}",
                             f"{comm_mean:.6f}", f"{comm_std:.6f}",
                             f"{comp_mean:.6f}", f"{comp_std:.6f}",
