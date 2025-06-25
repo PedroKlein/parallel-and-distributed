@@ -72,7 +72,6 @@ Uma abordagem sistemática para obter resultados confiáveis.
     * Bitonic Sort (Sequencial e Paralelo)
     * Merge Sort (Sequencial e Paralelo) -> *usado como **referência** de desempenho.*
 * **Automação:** Um script em Python gerenciou todo o processo:
-    * Compilação do código.
     * Execução dos testes com diferentes parâmetros.
     * Coleta dos resultados em arquivos CSV.
     * Validação da correção da saída ordenada.
@@ -106,6 +105,39 @@ Uma análise "de baixo nível" com o Intel VTune Profiler ($N \approx 16.7$ milh
 * **Pressão na Memória:** Maior
 
 ![width:500px](images/vtune_parallel.png)
+
+</div>
+</div>
+
+---
+
+## **Análise de Performance: VTune**
+
+Uma análise "de baixo nível" com o Intel VTune Profiler ($N \approx 16.7$ milhões).
+
+<div class="columns">
+<div>
+
+### Sequencial
+
+* **Tempo:** ~43,5 s
+* **CPI:** 0.49 (Bom)
+* **Uso Efetivo de CPU:** 4,8%
+* **Pressão na Memória:** Baixa
+
+<!-- ![width:500px](images/vtune_sequential.png) -->
+
+</div>
+<div>
+
+### Paralelo (40 threads)
+
+* **Tempo:** **~7,5 s** (~5.8x mais rápido)
+* **CPI:** 0.60 (Maior overhead)
+* **Uso Efetivo de CPU:** 40,4% (~8 núcleos)
+* **Pressão na Memória:** Maior
+
+<!-- ![width:500px](images/vtune_parallel.png) -->
 
 </div>
 </div>
