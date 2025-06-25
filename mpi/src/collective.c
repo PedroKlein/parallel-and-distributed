@@ -1,3 +1,10 @@
+#include "comm_strategies.h"
+#include <mpi.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+extern bool verbose;
+
 void run_collective(int n, int rank, int size, double *A, double *B, double *C, double *local_A, double *local_C)
 {
     int elements_per_proc = n * n / size;
