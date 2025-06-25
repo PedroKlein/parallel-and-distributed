@@ -48,7 +48,7 @@ def main():
     output_csv_file = f"mpi_results_{job_id}.csv"
     repetitions = 5
 
-    comm_types = ["collective", "sync", "async_naive", "async"]
+    comm_types = ["collective", "sync", "async", "async_new"]
     matrix_sizes = [8192]  # Always use fixed array size 8192
 
     # Set the number of processes based on the environment

@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         if (rank == 0)
         {
             fprintf(stderr, "Usage: mpirun -np <procs> %s <n> <comm_type> [--validate] [--verbose]\n", argv[0]);
-            fprintf(stderr, "Communication types: collective, sync, async, async_naive\n");
+            fprintf(stderr, "Communication types: collective, sync, async, async_new\n");
         }
         MPI_Finalize();
         return 1;
@@ -109,9 +109,9 @@ int main(int argc, char *argv[])
     {
         run_async(n, rank, size, A, B, C, local_A, local_C);
     }
-    else if (strcmp(comm_type, "async_naive") == 0)
+    else if (strcmp(comm_type, "async_new") == 0)
     {
-        run_async_naive(n, rank, size, A, B, C, local_A, local_C);
+        run_async_new(n, rank, size, A, B, C, local_A, local_C);
     }
     else
     {

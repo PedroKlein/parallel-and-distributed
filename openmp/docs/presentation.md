@@ -125,8 +125,6 @@ Uma análise "de baixo nível" com o Intel VTune Profiler ($N \approx 16.7$ milh
 * **Uso Efetivo de CPU:** 4,8%
 * **Pressão na Memória:** Baixa
 
-<!-- ![width:500px](images/vtune_sequential.png) -->
-
 </div>
 <div>
 
@@ -136,8 +134,6 @@ Uma análise "de baixo nível" com o Intel VTune Profiler ($N \approx 16.7$ milh
 * **CPI:** 0.60 (Maior overhead)
 * **Uso Efetivo de CPU:** 40,4% (~8 núcleos)
 * **Pressão na Memória:** Maior
-
-<!-- ![width:500px](images/vtune_parallel.png) -->
 
 </div>
 </div>
@@ -216,6 +212,5 @@ Isso sinaliza o potencial do Bitonic Sort em arquiteturas massivamente paralelas
 ## **Possiveis Melhorias**
 
 * **Threshold Adaptativo:** Criar um `task_threshold` que se ajusta dinamicamente ao tamanho do problema.
-* **Otimização de Memória:** Explorar afinidade de threads (afinidade NUMA) para reduzir a latência de acesso à memória.
 * **Melhorar Localidade de Dados:** Otimizar o código para minimizar *cache misses*.
 * **Modelos Híbridos:** Avaliar o uso de `task` combinado com `parallel for` ou até mesmo descarregar parte do trabalho para uma GPU.

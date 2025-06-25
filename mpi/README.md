@@ -28,7 +28,7 @@ The project is organized into source, include, and build directories, managed by
     ├── collective.c
     ├── sync.c
     ├── async.c
-    └── async_naive.c
+    └── async_new.c
 ```
 
 ## 3. Implemented Communication Strategies
@@ -37,8 +37,8 @@ Four distinct communication strategies have been implemented for comparison:
 
 -   **`collective`**: Uses high-level MPI collective operations (`MPI_Scatter`, `MPI_Bcast`, `MPI_Gather`) for data distribution and collection.
 -   **`sync`**: Uses blocking, point-to-point communication (`MPI_Send`, `MPI_Recv`) for explicit data handling.
--   **`async_naive`**: A non-blocking implementation (`MPI_Isend`, `MPI_Irecv`) where `MPI_Wait` is called immediately after initiating the communication. This pattern simulates blocking behavior and serves as a baseline for comparison against a true non-blocking approach.
--   **`async`**: An improved non-blocking implementation that initiates multiple communication requests and uses `MPI_Waitall` to wait for their completion, aiming to overlap communication with computation where possible.
+-   **`async`**: A non-blocking implementation (`MPI_Isend`, `MPI_Irecv`) where `MPI_Wait` is called immediately after initiating the communication. This pattern simulates blocking behavior and serves as a baseline for comparison against a true non-blocking approach.
+-   **`async_new`**: An improved non-blocking implementation that initiates multiple communication requests and uses `MPI_Waitall` to wait for their completion, aiming to overlap communication with computation where possible.
 
 ## 4. Prerequisites
 

@@ -13,7 +13,7 @@ set(SOURCES
     src/collective.c
     src/sync.c
     src/async.c
-    src/async_naive.c
+    src/async_new.c
 )
 
 add_executable(mpi_matmult ${SOURCES})
