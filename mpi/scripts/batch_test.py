@@ -46,10 +46,10 @@ def main():
     # --- Test Configuration ---
     job_id = os.environ.get('SLURM_JOB_ID', 'local')
     output_csv_file = f"mpi_results_{job_id}.csv"
-    repetitions = 10
+    repetitions = 3
 
     comm_types = ["collective", "sync", "async", "async_new"]
-    matrix_sizes = [1024, 2048, 4096]
+    matrix_sizes = [4096, 8192]
 
     # Set the number of processes based on the environment
     if IS_SLURM_RUN:
