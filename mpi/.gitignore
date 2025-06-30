@@ -1,13 +1,12 @@
 # Ignore build directories
-/build/
+**/build/
 /CMakeFiles/
 /CMakeCache.txt
 /cmake_install.cmake
-
+/Makefile
 
 # Ignore executables and libraries
 *.exe
-*.out
 *.o
 *.a
 *.so
@@ -23,6 +22,9 @@
 *.DS_Store
 *.vscode/
 .idea/
-build/*
 
-data/in_16777216.in
+
+# Ignore generated from slurm
+nodes.*
+*.err
+*.out

@@ -1,0 +1,43 @@
+# LaTeX intermediate and output files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.dvi
+*.ps
+
+# Editor backup files
+*~
+*.bak
+*.swp
+*.swo
+
+# latexmk and arara
+latexmkrc
+*.run.xml
+
+# Subdirectories for auxiliary files
+_auto/
+_build/
+*.xdy

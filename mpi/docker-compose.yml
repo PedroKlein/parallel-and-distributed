@@ -1,0 +1,65 @@
+services:
+  master:
+    build: .
+    container_name: mpi-master
+    hostname: master
+    volumes:
+      - .:/workspace:rw
+      - slurm_conf:/etc/slurm
+    networks:
+      - mpinet
+    tty: true
+    environment:
+      - NODE_TYPE=master
+    ports:
+      - "2222:22"
+    command: ["/usr/local/bin/entrypoint.sh"]
+
+  node1:
+    build: .
+    container_name: mpi-node1
+    hostname: node1
+    volumes:
+      - .:/workspace:rw
+      - slurm_conf:/etc/slurm
+    networks:
+      - mpinet
+    tty: true
+    environment:
+      - NODE_TYPE=worker
+    command: ["/usr/local/bin/entrypoint.sh"]
+
+  node2:
+    build: .
+    container_name: mpi-node2
+    hostname: node2
+    volumes:
+      - .:/workspace:rw
+      - slurm_conf:/etc/slurm
+    networks:
+      - mpinet
+    tty: true
+    environment:
+      - NODE_TYPE=worker
+    command: ["/usr/local/bin/entrypoint.sh"]
+
+  node3:
+    build: .
+    container_name: mpi-node3
+    hostname: node3
+    volumes:
+      - .:/workspace:rw
+      - slurm_conf:/etc/slurm
+    networks:
+      - mpinet
+    tty: true
+    environment:
+      - NODE_TYPE=worker
+    command: ["/usr/local/bin/entrypoint.sh"]
+
+volumes:
+  slurm_conf:
+
+networks:
+  mpinet:
+    driver: bridge

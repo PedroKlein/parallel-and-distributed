@@ -7,11 +7,16 @@
 		{
 			"path": "openmp",
 			"name": "OpenMP"
+		},
+		{
+			"path": "mpi",
+			"name": "MPI"
 		}
 	],
 	"settings": {
 		"files.exclude": {
 			"openmp/": true,
+			"mpi/": true,
 		},
 		"search.exclude": {
 			"**/build/*": true,
