@@ -2,7 +2,7 @@
 #SBATCH --job-name=matmult_batch_test
 #SBATCH --partition=hype
 #SBATCH --nodes=4
-#SBATCH --ntasks=64
+#SBATCH --ntasks=32
 #SBATCH --time=23:59:59
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x_%j.err

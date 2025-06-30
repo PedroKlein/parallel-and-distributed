@@ -49,7 +49,7 @@ def main():
     repetitions = 3
 
     comm_types = ["collective", "sync", "async", "async_new"]
-    matrix_sizes = [4096, 8192]
+    matrix_sizes = [512, 1024, 2048] 
 
     # Set the number of processes based on the environment
     if IS_SLURM_RUN:
